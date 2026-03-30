@@ -1,0 +1,30 @@
+name: Build EXE
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pythonセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: ライブラリインストール
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+
+      - name: EXE作成
+        run: |
+          pyinstaller my_pyqt/study_abroad_judge.py -F -w
+
+      - name: 成果物アップロード
+        uses: actions/upload-artifact@v4
+        with:
+          name: exe
+          path: dist/

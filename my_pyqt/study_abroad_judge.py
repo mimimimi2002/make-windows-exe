@@ -1,8 +1,10 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QFileDialog, QLabel, QMessageBox
 from data_read import data_read
+from check_data import check_data
 import json
 import os
+import shutil
 
 class UploadApp(QWidget):
     def __init__(self):
@@ -27,32 +29,59 @@ class UploadApp(QWidget):
             self, "ファイルを開く", "", "All Files (*);;Text Files (*.txt)"
         )
 
+        print("file_name", file_name)
+
         try:
           if file_name:
               self.label_file.setText(f'選択: {file_name}')
               print(f'アップロード予定ファイル: {file_name}')
-              judge_data, option_data, option_count = data_read(file_name)
-
-              save_dir = os.path.join(os.path.expanduser("~"), "Downloads", "data")
-
-              os.makedirs(save_dir, exist_ok=True)
-
-              if save_dir:
-                with open(f"{save_dir}/judge_data.json", "w", encoding="utf-8") as f:
-                  json.dump(judge_data, f, ensure_ascii=False, indent=4)
-
-                with open(f"{save_dir}/option_data.json", "w", encoding="utf-8") as f:
-                    json.dump(option_data, f, ensure_ascii=False, indent=4)
-
-                with open(f"{save_dir}/option_count.json", "w", encoding="utf-8") as f:
-                    json.dump(option_count, f, ensure_ascii=False, indent=4)
-
-                msg = QMessageBox()
-                msg.setWindowTitle("完了")
-                msg.setText(f"保存が完了しました！\n{save_dir}")
+              error_messages = check_data(file_name)
+              print(error_messages)
+              msg = QMessageBox()
+              if len(error_messages) != 0:
+                if len(error_messages) > 5:
+                    error_text = "\n".join(error_messages[:5])
+                else:
+                    error_text = "\n".join(error_messages)
+                msg.setWindowTitle("エラー")
+                msg.setText(f"エクセルデータにエラーがあります\n\n{error_text}")
                 msg.exec()
 
-                self.close()
+                return
+
+              judge_data, option_data, option_count = data_read(file_name)
+
+              save_judge_dir = os.path.join(os.path.expanduser("~"), "Downloads", "data", "judge_data")
+              save_image_dir = os.path.join(os.path.expanduser("~"), "Downloads", "data", "image")
+
+              os.makedirs(save_judge_dir, exist_ok=True)
+              os.makedirs(save_image_dir, exist_ok=True)
+
+              file_basename = os.path.basename(file_name)
+              save_path = os.path.join(save_judge_dir, file_basename)
+              shutil.copy(file_name, save_path)
+
+              with open(f"{save_judge_dir}/judge_data.json", "w", encoding="utf-8") as f:
+                  json.dump(judge_data, f, ensure_ascii=False, indent=4)
+
+              with open(f"{save_judge_dir}/option_data.json", "w", encoding="utf-8") as f:
+                  json.dump(option_data, f, ensure_ascii=False, indent=4)
+
+              with open(f"{save_judge_dir}/option_count.json", "w", encoding="utf-8") as f:
+                  json.dump(option_count, f, ensure_ascii=False, indent=4)
+
+              # save images
+              image_dir = os.path.join(os.path.dirname(file_name), "../image")
+              if os.path.exists(save_image_dir):
+                shutil.rmtree(save_image_dir)
+              shutil.copytree(image_dir, save_image_dir)
+
+              msg.setWindowTitle("完了")
+              save_dir = os.path.join(os.path.expanduser("~"), "Downloads", "data")
+              msg.setText(f"保存が完了しました！\n{save_dir}")
+              msg.exec()
+
+              self.close()
         except Exception as e:
           QMessageBox.critical(self, "エラー", str(e))
 

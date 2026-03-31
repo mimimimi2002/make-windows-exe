@@ -17,7 +17,7 @@ def data_read(file_path):
 
     def get_program_data(program_name):
         program_data = {
-                "name": program_name,
+                "program_name": program_name,
                 "url": str(program_df[program_name][0]),
                 "outline": " ".join(program_df[program_name][3].split()),
                 "period": " ".join(program_df[program_name][4].split()),
@@ -25,7 +25,7 @@ def data_read(file_path):
                 "cost": " ".join(str(program_df[program_name][6]).split()),
                 "application_grade": " ".join(str(program_df[program_name][7]).split()),
                 "contact": " ".join(str(program_df[program_name][8]).split()),
-                "ID": str(program_df[program_name][1])
+                "image_name": str(program_df[program_name][1])
             }
         return program_data
 
@@ -87,7 +87,6 @@ def data_read(file_path):
     option_count["L"] = l + 1
 
     judge_df = pd.read_excel(file_path,sheet_name=2,header=None)
-    season = ['S1','S2']
     s = 0
     p = 0
     for i in range(judge_df.shape[0] - 1):
@@ -116,8 +115,6 @@ def data_read(file_path):
     option_count["S"] = s + 1
 
     judge_df = pd.read_excel(file_path,sheet_name=3,header=None)
-    purpose = ['PP1','PP2','PP3','PP4','PP5','PP6','PP7','PP8','PP9','PP10','PP11','PP12', 'PP13', 'PP14', 'PP15', 'PP16']
-    period = ['P1','P2','P3','P4']
 
     pp = 1
     p = 1
@@ -147,8 +144,6 @@ def data_read(file_path):
     option_count["PP"] = pp + 1
 
     judge_df = pd.read_excel(file_path,sheet_name=4,header=None)
-    style = ['Style1','Style2','Style3','Style4','Style5','Style6','Style7',]
-    period = ['P1','P2','P3','P4']
 
     style = 1
     p = 1

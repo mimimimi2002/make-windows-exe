@@ -49,7 +49,7 @@ class UploadApp(QWidget):
 
                 msg = QMessageBox()
                 msg.setWindowTitle("完了")
-                msg.setText("保存が完了しました！")
+                msg.setText(f"保存が完了しました！\n{save_dir}")
                 msg.exec()
 
                 self.close()

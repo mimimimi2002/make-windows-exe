@@ -3,15 +3,14 @@ import json
 
 def data_read(file_path):
 
-    judge_df = pd.read_excel(file_path,sheet_name=0,header=None)
     program_df = pd.read_excel(file_path,sheet_name=6)
     xls = pd.ExcelFile(file_path)
 
     # Extract all sheet names
     sheet_names = xls.sheet_names
 
-    def read_option(sheet_id, row, end):
-        option_df = judge_df.iloc[row+1, 1:end]
+    def read_option(judge_df, sheet_id, row, end):
+        option_df = judge_df.iloc[row, 1:end]
         connected = '/'.join(option_df.iloc[:end-1].astype(str).values.flatten())
         return sheet_names[sheet_id] + "/" + connected
 
@@ -33,20 +32,21 @@ def data_read(file_path):
     option_data = {}
     option_count = {}
 
-    for i in range(judge_df.shape[0] - 1):
-        programs_list = judge_df.iloc[i+1, 2:].dropna()
+    # 期間で決めるページのread data
+    period_judge_df = pd.read_excel(file_path,sheet_name=0)
+
+    for i in range(period_judge_df.shape[0]):
+        programs_list = period_judge_df.iloc[i, 2:].dropna()
         query = f"H1P{i+1}"
 
         # Initialize a list to store each program's data
         programs = []
         option = ""
 
-        for j in range(len(programs_list)):
-            program_name = str(judge_df.iloc[i+1, 2:].dropna()[j+2])
-
+        for program_name in programs_list:
             # Create a dictionary for each program
             program_data = get_program_data(program_name)
-            option = read_option(0, i, 2)
+            option = read_option(period_judge_df, 0, i, 2)
 
             programs.append(program_data)
 
@@ -55,16 +55,19 @@ def data_read(file_path):
         if option:
             option_data[query] = option
 
-    judge_df = pd.read_excel(file_path,sheet_name=1,header=None)
-
     option_count["P"] = i + 1
+
+    period_option_count = i + 1
+
+    #　言語で決めるページ
+    language_judge_df = pd.read_excel(file_path,sheet_name=1)
 
     l = 0
     p = 0
-    for i in range(judge_df.shape[0] - 1):
-        programs_list = judge_df.iloc[i + 1, 3:].dropna()
+    for i in range(language_judge_df.shape[0]):
+        programs_list = language_judge_df.iloc[i, 3:].dropna()
         p += 1
-        if i % 4 == 0:
+        if i % period_option_count == 0:
             l += 1
             p = 1
 
@@ -72,11 +75,9 @@ def data_read(file_path):
         program_entries = []
         option = ""
 
-        for j in range(len(programs_list)):
-            program_name = str(judge_df.iloc[i + 1, 3:].dropna()[j + 3])
-
+        for program_name in programs_list:
             program_data = get_program_data(program_name)
-            option = read_option(1, i, 3)
+            option = read_option(language_judge_df, 1, i, 3)
 
             program_entries.append(program_data)
 
@@ -84,15 +85,16 @@ def data_read(file_path):
         if option:
             option_data[query] = option
 
-    option_count["L"] = l + 1
+    option_count["L"] = l
 
-    judge_df = pd.read_excel(file_path,sheet_name=2,header=None)
+    # 長期休みで決めるページ
+    season_judge_df = pd.read_excel(file_path,sheet_name=2)
     s = 0
     p = 0
-    for i in range(judge_df.shape[0] - 1):
-        programs_list = judge_df.iloc[i + 1, 3:].dropna()
+    for i in range(season_judge_df.shape[0]):
+        programs_list = season_judge_df.iloc[i, 3:].dropna()
         p += 1
-        if i % 4 == 0:
+        if i % period_option_count == 0:
             s += 1
             p = 1
 
@@ -100,11 +102,9 @@ def data_read(file_path):
         program_entries = []
         option = ""
 
-        for j in range(len(programs_list)):
-            program_name = str(judge_df.iloc[i + 1, 3:].dropna()[j + 3])
-
+        for program_name in programs_list:
             program_data = get_program_data(program_name)
-            option = read_option(2, i, 3)
+            option = read_option(season_judge_df, 2, i, 3)
 
             program_entries.append(program_data)
 
@@ -112,16 +112,17 @@ def data_read(file_path):
         if option:
             option_data[query] = option
 
-    option_count["S"] = s + 1
+    option_count["S"] = s
 
-    judge_df = pd.read_excel(file_path,sheet_name=3,header=None)
+    # 目的で決めるページ
+    purpose_judge_df = pd.read_excel(file_path,sheet_name=3)
 
-    pp = 1
-    p = 1
-    for i in range(judge_df.shape[0]-1):
-        programs_list = judge_df.iloc[i+1,3:].dropna()
+    pp = 0
+    p = 0
+    for i in range(purpose_judge_df.shape[0]):
+        programs_list = purpose_judge_df.iloc[i ,3:].dropna()
         p += 1
-        if i % 4 == 0:
+        if i % period_option_count == 0:
             pp += 1
             p = 1
 
@@ -129,11 +130,10 @@ def data_read(file_path):
         program_entries = []
         option = ""
 
-        for j in range(len(programs_list)):
-            program_name = str(judge_df.iloc[i + 1, 3:].dropna()[j + 3])
+        for program_name in programs_list:
 
             program_data = get_program_data(program_name)
-            option = read_option(3, i, 3)
+            option = read_option(purpose_judge_df, 3, i, 3)
 
             program_entries.append(program_data)
 
@@ -141,16 +141,17 @@ def data_read(file_path):
         if option:
             option_data[query] = option
 
-    option_count["PP"] = pp + 1
+    option_count["PP"] = pp
 
-    judge_df = pd.read_excel(file_path,sheet_name=4,header=None)
+    #　留学スタイルで決めるページ
+    style_judge_df = pd.read_excel(file_path,sheet_name=4)
 
-    style = 1
-    p = 1
-    for i in range(judge_df.shape[0]-1):
-        programs_list = judge_df.iloc[i+1,3:].dropna()
+    style = 0
+    p = 0
+    for i in range(style_judge_df.shape[0]):
+        programs_list = style_judge_df.iloc[i ,3:].dropna()
         p += 1
-        if i % 4 == 0:
+        if i % period_option_count == 0:
             style += 1
             p = 1
 
@@ -158,11 +159,10 @@ def data_read(file_path):
         program_entries = []
         option = ""
 
-        for j in range(len(programs_list)):
-            program_name = str(judge_df.iloc[i + 1, 3:].dropna()[j + 3])
+        for program_name in programs_list:
 
             program_data = get_program_data(program_name)
-            option = read_option(4, i, 3)
+            option = read_option(style_judge_df, 4, i, 3)
 
             program_entries.append(program_data)
 
@@ -170,24 +170,24 @@ def data_read(file_path):
         if option:
             option_data[query] = option
 
-    option_count["Style"] = style + 1
+    option_count["Style"] = style
 
-    judge_df = pd.read_excel(file_path,sheet_name=5,header=None)
+    # イベントで決めるページ
+    event_judge_df = pd.read_excel(file_path,sheet_name=5)
 
-    for i in range(judge_df.shape[0] - 1):
-        programs_list = judge_df.iloc[i+1, 2:].dropna()
+    for i in range(event_judge_df.shape[0]):
+        programs_list = event_judge_df.iloc[i, 2:].dropna()
         query = f"H6E{i+1}"
 
         # Initialize a list to store each program's data
         programs = []
         option = ""
 
-        for j in range(len(programs_list)):
-            program_name = str(judge_df.iloc[i+1, 2:].dropna()[j+2])
+        for program_name in programs_list:
 
             # Create a dictionary for each program
             program_data = get_program_data(program_name)
-            option = read_option(5, i, 2)
+            option = read_option(event_judge_df, 5, i, 2)
 
             programs.append(program_data)
 
@@ -198,3 +198,6 @@ def data_read(file_path):
     option_count["E"] = i + 1
 
     return judge_data, option_data, option_count
+
+if __name__ == "__main__":
+    data_read("/Users/maseiyou/Downloads/data_test/judge_data/updated_judge.xlsx")

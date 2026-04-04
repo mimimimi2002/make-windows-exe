@@ -5,6 +5,8 @@ from check_data import check_data
 import json
 import os
 import shutil
+from datetime import datetime
+from check_json import check_json
 
 class UploadApp(QWidget):
     def __init__(self):
@@ -22,6 +24,7 @@ class UploadApp(QWidget):
         self.layout.addWidget(self.label_file)
 
         self.setLayout(self.layout)
+        self.msg = QMessageBox()
 
     # 2. クリック時の処理（ファイルダイアログ）
     def open_file_dialog(self):
@@ -29,27 +32,23 @@ class UploadApp(QWidget):
             self, "ファイルを開く", "", "All Files (*);;Text Files (*.txt)"
         )
 
-        print("file_name", file_name)
-
         try:
           if file_name:
               self.label_file.setText(f'選択: {file_name}')
               print(f'アップロード予定ファイル: {file_name}')
               error_messages = check_data(file_name)
-              print(error_messages)
-              msg = QMessageBox()
-              if len(error_messages) != 0:
-                if len(error_messages) > 5:
-                    error_text = "\n".join(error_messages[:5])
-                else:
-                    error_text = "\n".join(error_messages)
-                msg.setWindowTitle("エラー")
-                msg.setText(f"エクセルデータにエラーがあります\n\n{error_text}")
-                msg.exec()
 
-                return
+              if len(error_messages) > 0:
+                  self.show_error(error_messages)
+                  return
 
               judge_data, option_data, option_count = data_read(file_name)
+
+              error_messages = check_json(judge_data, option_data, option_count)
+
+              if len(error_messages) > 0:
+                  self.show_error(error_messages)
+                  return
 
               save_judge_dir = os.path.join(os.path.expanduser("~"), "Downloads", "data", "judge_data")
               save_image_dir = os.path.join(os.path.expanduser("~"), "Downloads", "data", "image")
@@ -76,14 +75,30 @@ class UploadApp(QWidget):
                 shutil.rmtree(save_image_dir)
               shutil.copytree(image_dir, save_image_dir)
 
-              msg.setWindowTitle("完了")
+              date_str = datetime.now().strftime("%Y-%m-%d-%H-%M")
+
+              update_file_path = os.path.join(save_judge_dir, "update_at.txt")
+
+              with open(update_file_path, "w", encoding="utf-8") as f:
+                  f.write(date_str)
+
+              self.msg.setWindowTitle("完了")
               save_dir = os.path.join(os.path.expanduser("~"), "Downloads", "data")
-              msg.setText(f"保存が完了しました！\n{save_dir}")
-              msg.exec()
+              self.msg.setText(f"保存が完了しました！\n{save_dir}")
+              self.msg.exec()
 
               self.close()
         except Exception as e:
           QMessageBox.critical(self, "エラー", str(e))
+
+    def show_error(self, error_messages):
+        if len(error_messages) > 5:
+            error_text = "\n".join(error_messages[:5])
+        else:
+            error_text = "\n".join(error_messages)
+        self.msg.setWindowTitle("エラー")
+        self.msg.setText(f"エクセルデータにエラーがあります\n\n{error_text}")
+        self.msg.exec()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

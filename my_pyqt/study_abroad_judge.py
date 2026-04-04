@@ -1,5 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QFileDialog, QLabel, QMessageBox
+from PyQt6.QtCore import Qt
 from data_read import data_read
 from check_data import check_data
 import json
@@ -21,10 +22,12 @@ class UploadApp(QWidget):
 
         # ファイル名表示用ラベル
         self.label_file = QLabel('ファイルが選択されていません', self)
+        self.label_file.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.label_file)
 
         self.setLayout(self.layout)
         self.msg = QMessageBox()
+        self.resize(500, 300)
 
     # 2. クリック時の処理（ファイルダイアログ）
     def open_file_dialog(self):

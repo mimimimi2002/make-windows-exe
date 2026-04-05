@@ -12,16 +12,16 @@ from check_json import check_json
 class UploadApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('ファイルアップロード')
+        self.setWindowTitle('フォルダアップロード')
         self.layout = QVBoxLayout()
 
         # 1. アップロードボタンの作成
-        self.btn_upload = QPushButton('ファイルを選択', self)
+        self.btn_upload = QPushButton('フォルダを選択', self)
         self.btn_upload.clicked.connect(self.open_file_dialog)
         self.layout.addWidget(self.btn_upload)
 
-        # ファイル名表示用ラベル
-        self.label_file = QLabel('ファイルが選択されていません', self)
+        # フォルダ名表示用ラベル
+        self.label_file = QLabel('dataフォルダが選択されていません', self)
         self.label_file.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.label_file)
 
@@ -29,23 +29,28 @@ class UploadApp(QWidget):
         self.msg = QMessageBox()
         self.resize(500, 300)
 
-    # 2. クリック時の処理（ファイルダイアログ）
+    # 2. クリック時の処理（フォルダダイアログ）
     def open_file_dialog(self):
-        file_name, _ = QFileDialog.getOpenFileName(
-            self, "ファイルを開く", "", "All Files (*);;Text Files (*.txt)"
+        data_folder_path = QFileDialog.getExistingDirectory(
+            self, "dataフォルダを選択"
         )
 
         try:
-          if file_name:
-              self.label_file.setText(f'選択: {file_name}')
-              print(f'アップロード予定ファイル: {file_name}')
-              error_messages = check_data(file_name)
+          if data_folder_path:
+              self.label_file.setText(f'選択: {data_folder_path}')
+              print(f'アップロード予定dataフォルダ: {data_folder_path}')
+              excel_file_path = os.path.join(data_folder_path, "judge_data", "updated_judge.xlsx")
+
+              if not os.path.exists(excel_file_path):
+                  raise FileNotFoundError(f"{excel_file_path} が見つかりません")
+
+              error_messages = check_data(excel_file_path)
 
               if len(error_messages) > 0:
                   self.show_error(error_messages)
                   return
 
-              judge_data, option_data, option_count = data_read(file_name)
+              judge_data, option_data, option_count = data_read(excel_file_path)
 
               error_messages = check_json(judge_data, option_data, option_count)
 
@@ -59,9 +64,9 @@ class UploadApp(QWidget):
               os.makedirs(save_judge_dir, exist_ok=True)
               os.makedirs(save_image_dir, exist_ok=True)
 
-              file_basename = os.path.basename(file_name)
+              file_basename = "updated_judge.xlsx"
               save_path = os.path.join(save_judge_dir, file_basename)
-              shutil.copy(file_name, save_path)
+              shutil.copy(excel_file_path, save_path)
 
               with open(f"{save_judge_dir}/judge_data.json", "w", encoding="utf-8") as f:
                   json.dump(judge_data, f, ensure_ascii=False, indent=4)
@@ -73,7 +78,7 @@ class UploadApp(QWidget):
                   json.dump(option_count, f, ensure_ascii=False, indent=4)
 
               # save images
-              image_dir = os.path.join(os.path.dirname(file_name), "../image")
+              image_dir = os.path.join(data_folder_path, "image")
               if os.path.exists(save_image_dir):
                 shutil.rmtree(save_image_dir)
               shutil.copytree(image_dir, save_image_dir)

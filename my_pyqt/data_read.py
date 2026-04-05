@@ -198,6 +198,3 @@ def data_read(file_path):
     option_count["E"] = i + 1
 
     return judge_data, option_data, option_count
-
-if __name__ == "__main__":
-    data_read("/Users/maseiyou/Downloads/data_test/judge_data/updated_judge.xlsx")

@@ -14,7 +14,7 @@ def check_json(judge_data, option_data, option_count):
   for key in judge_data.keys():
     for program in judge_data[key]:
       if set(program.keys()) != expected_keys:
-        errors.append(f"keyが{expected_keys}と一致していません。")
+        errors.append(f"{program}データのkeyが{expected_keys}と一致していません。")
 
   for key in judge_data.keys():
     # パターン抽出

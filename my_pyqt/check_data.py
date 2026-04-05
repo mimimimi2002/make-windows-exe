@@ -112,7 +112,7 @@ def check_data(excel_file_path):
       if not os.path.exists(image_path):
           error_messages.append(
               f"「留学プログラムリスト」ページの「{program_name}」のプログラムの、"
-              f"image{i+1}がimageフォルダに入っていません。"
+              f"image{i+1}.pngがimageフォルダに入っていません。"
           )
           return error_messages
 

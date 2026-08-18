@@ -8,5 +8,5 @@ GitHub Actionsを利用してビルドされ、Windowsで実行可能なexeフ�
 - 実際のホームページ  
   http://www.ipo.titech.ac.jp/programsearch/homepage.html
 
-- GitHubリポジトリ  
+- ホームページのGitHubリポジトリ  
   https://github.com/mimimimi2002/study-abroad-web-remake
